@@ -5,12 +5,19 @@ import torch
 import torch.nn.functional as F
 
 
-###############################################################################
-# Miscellaneous functions
-###############################################################################
+"""
+Miscellaneous functions
+##############################################################################
+"""
+
 
 def logit(x):
     return torch.log(x) - torch.log(1-x)
+
+torch.log(torch.tensor([0.1])
+
+logit(torch.tensor([0.1]))
+
 
 def s_logit(x, min=0, max=1):
     """Stretched logit function: Maps x lying in (min, max) to R"""
@@ -52,7 +59,7 @@ def gaussian_cdf(x):
 
 ###############################################################################
 # Hyperparameter convenience functions
-###############################################################################
+# ##############################################################################
 class HyperparameterInfo():
     def __init__(self, index, range, hnet_fcn, discrete=False, minibatch=True):
         """

@@ -11,9 +11,11 @@ import torch.nn.functional as F
 from stn_utils.hyperparameter import logit, inv_softplus, s_sigmoid, s_logit, HyperparameterInfo
 
 
-###############################################################################
-# Miscellaneous functions
-###############################################################################
+"""
+Miscellaneous functions
+##############################################################################
+"""
+
 
 def create_hparams(args, cnn_class, device):
     """
