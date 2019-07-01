@@ -30,9 +30,10 @@ from stn_utils.hyperparameter import perturb, hparam_transform, \
 from logger import Logger
 
 
-###############################################################################
-# Arguments
-###############################################################################
+"""
+Arguments
+##############################################################################
+"""
 model_options = ['small', 'alexnet']
 
 parser = argparse.ArgumentParser(description='CNN')
@@ -117,16 +118,83 @@ assert any([args.tune_dropout, args.tune_dropoutl,
             "Must tune something when hypertraining"
 
 
+""
+
+
 ###############################################################################
 # Data Loading/Processing
-###############################################################################
+# ##############################################################################
+create_loaders??
+
+""
+args = {"model":"alexnet","tune_scales":False,"tune_all":True,"start_inscale":0.05,"start_drop":0.05,""}
+# Tuning options
+parser.add_argument('--tune_scales', '-tscl', action='store_true', default=False, help='whether to tune scales of perturbations by penalizing entropy on training set')
+parser.add_argument('--tune_dropout', '-tdrop', action='store_true', default=False, help='whether to tune dropout rate shared across layers')
+parser.add_argument('--tune_dropoutl', '-tdropl', action='store_true', default=False, help='whether to tune dropout rates (per layer)')
+parser.add_argument('--tune_indropout', '-tidrop', action='store_true', default=False, help='whether to tune dropout rate on input')
+parser.add_argument('--tune_fcdropout', '-tfcdrop', action='store_true', default=False, help='whether to tune dropout rate on input')
+parser.add_argument('--tune_inscale', '-tiscl', action='store_true', default=False, help='whether to tune scaling applied to input')
+parser.add_argument('--tune_hue', '-thue', action='store_true', default=False, help='whether to tune hue jitter')
+parser.add_argument('--tune_sat', '-tsat', action='store_true', default=False, help='whether to tune saturation jitter')
+parser.add_argument('--tune_contrast', '-tcon', action='store_true', default=False, help='whether to tune contrast jitter')
+parser.add_argument('--tune_bright', '-tbrt', action='store_true', default=False, help='whether to tune bright jitter')
+parser.add_argument('--tune_jitters', '-tjit', action='store_true', default=False, help='whether to tune hue jitter')
+parser.add_argument('--tune_cutlength', '-tcutl', action='store_true', default=False, help='whether to tune length of cutout holes')
+parser.add_argument('--tune_cutholes', '-tcuth', action='store_true', default=False, help='whether to tune number of cutout holes')
+parser.add_argument('--tune_all', '-tall', action='store_true', default=False, help='whether to tune everything')
+# Initial hyperparameter settings
+parser.add_argument('--start_inscale', '-iscl', type=float, default=0.05, help='starting input scaling factor')
+parser.add_argument('--start_drop', '-drop', type=float, default=0.05, help='starting dropout rate')
+parser.add_argument('--start_indrop', '-idrop', type=float, default=0.05, help='starting input dropout rate')
+parser.add_argument('--start_fcdrop', '-fcdrop', type=float, default=0.05, help='starting input dropout rate')
+parser.add_argument('--start_hue', '-hue', type=float, default=0.05, help='starting hue jitter')
+parser.add_argument('--start_sat', '-sat', type=float, default=0.05, help='starting saturation jitter')
+parser.add_argument('--start_contrast', '-con', type=float, default=0.05, help='starting contrast jitter')
+parser.add_argument('--start_bright', '-brt', type=float, default=0.05, help='starting brightness jitter')
+parser.add_argument('--start_cutlength', '-cutl', type=float, default=4., help='starting length of cutout hole') 
+parser.add_argument('--start_cutholes', '-cuth', type=float, default=1., help='starting number of holes cutout')
+# Optimization hyperparameters
+parser.add_argument('--batch_size', '-bsz', type=int, default=128, help='input batch size for training (default: 128)')
+parser.add_argument('--total_epochs', '-totep', type=int, default=500, help='number of training epochs to run for (warmup epochs are included in the count)')
+parser.add_argument('--warmup_epochs', '-wupep', type=int, default=5, help='number of warmup epochs to run for before tuning hyperparameters')
+parser.add_argument('--train_lr', '-tlr', type=float, default=0.01, help='learning rate on parameters')
+parser.add_argument('--valid_lr', '-vlr', type=float, default=3e-3, help='learning rate on hyperparameters')
+parser.add_argument('--scale_lr', '-slr', type=float, default=3e-3, help='learning rate on scales (used if tuning scales)')
+parser.add_argument('--momentum', '-mom', type=float, default=0.9, help='amount of momentum on usual parameters')
+parser.add_argument('--train_steps', '-tstep', type=int, default=2, help='number of batches to optimize parameters on training set')
+parser.add_argument('--valid_steps', '-vstep', type=int, default=1, help='number of batches to optimize hyperparameters on validation set')
+# LR decay hyperparameters
+parser.add_argument('--lr_decay', type=float, default=0.1, help='Factor by which to multiply the learning rate.')
+parser.add_argument('--nonmono', '-nonm', type=int, default=60, help='how many previous epochs to consider for nonmonotonic criterion')
+parser.add_argument('--patience', '-pat', type=int, default=75, help='How long to wait for the val loss to improve before early stopping.')
+# Regularization hyperparameters
+parser.add_argument('--entropy_weight', '-ewt', type=float, default=1e-5, help='penalty applied to entropy of perturbation distribution')
+parser.add_argument('--perturb_scale', '-pscl', type=float, default=0.5, help='scale of perturbation applied to continuous hyperparameters')
+parser.add_argument('--cutlength_scale', '-clscl', type=float, default=0.5, help='scale of perturbation applied to cutlength hyperparameter')
+parser.add_argument('--cutholes_scale', '-chscl', type=float, default=0.5, help='scale of perturbation applied to cutholes hyperparameter')
+# Miscellaneous hyperparameters
+parser.add_argument('--log_interval', type=int, default=50, help='how many steps before logging stats')
+parser.add_argument('--percent_valid', '-pval', type=float, default=0.2, help='percentage of training dataset to be used as a validation set')
+parser.add_argument('--no_cuda', action='store_true', default=False, help='disables CUDA training')
+parser.add_argument('--save', action='store_true', default=False, help='whether to save current run')
+parser.add_argument('--logdir', default='logs', help='directory of regNet to save to')
+parser.add_argument('--dir', default='hyper-training', help='directory of logdir folder to save in')
+parser.add_argument('--subdir', default='', help='subdirectory of logdir/dir to save in')
+parser.add_argument('--seed', type=int, default=0, help='random seed (default: 0)')
+
+
+""
+create_loaders({},hyper=True)
+
+""
 train_loader, valid_loader, test_loader = create_loaders(args, hyper=True)
 
 train_iter = iter(train_loader)
 valid_iter = iter(valid_loader)
 ###############################################################################
 # Model/Optimizer
-###############################################################################
+# ##############################################################################
 num_classes = 10
 cnn_class = {'small': SmallCNN, 'alexnet': AlexNet}[args.model]
 
@@ -151,7 +219,7 @@ scale_optimizer = torch.optim.Adam([hscale], lr=args.scale_lr)
 
 ###############################################################################
 # Saving
-###############################################################################
+# ##############################################################################
 hlabels = create_hlabels(hdict, args)
 train_labels = ('global_step', 'train_epoch', 'valid_epoch', 'time', 'loss', 'acc')
 valid_labels = ('global_step', 'train_epoch', 'valid_epoch', 'time', 'loss', 'acc', 'entropy')
@@ -174,7 +242,7 @@ def model_load(fn):
 
 ###############################################################################
 # Evaluation
-###############################################################################
+# ##############################################################################
 def evaluate(loader):
     """Returns the loss and accuracy on the entire validation/test set.
 
@@ -202,7 +270,7 @@ def evaluate(loader):
 
 ###############################################################################
 # Optimization step
-###############################################################################
+# ##############################################################################
 def next_batch(data_iter, data_loader, curr_epoch):
     """Load next minibatch."""
     try:
@@ -273,7 +341,7 @@ def optimization_step(data_iter, data_loader, curr_epoch, hyper=False):
 
 ###############################################################################
 # Training Loop
-###############################################################################
+# ##############################################################################
 # Bookkeeping stuff.
 train_step = valid_step = global_step = wup_step = 0
 train_epoch = valid_epoch = 0
